@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    
+    <flow name="fakestore-client-eapi-main">
+        <http:listener config-ref="fakestore-client-eapi-httpListenerConfig" path="/api/${layer}/${context}/${version}/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="fakestore-client-eapi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+				<ee:transform doc:name="Common Error Response" doc:id="027f1acd-4aef-4c7a-95c6-baefd4dec2f1" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"header":{
+		"apiName": p('app.name'),
+		"apiVersion": p('version'),
+		"correlationId": correlationId,
+    }, 
+    "error": {
+		"description": error.description,
+		"status": error.errorType.identifier,
+		"invocationTimestamp": now()
+	}
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+				<ee:transform doc:name="Common Error Response" doc:id="7df167bf-9353-44c9-801d-47deb395d48b" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"header":{
+		"apiName": p('app.name'),
+		"apiVersion": p('version'),
+		"correlationId": correlationId,
+    }, 
+    "error": {
+		"description": error.description,
+		"status": error.errorType.identifier,
+		"invocationTimestamp": now()
+	}
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+				<ee:transform doc:name="Common Error Response" doc:id="b9f5e6e0-7f0a-4472-a4e6-27a0c31e1a09" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"header":{
+		"apiName": p('app.name'),
+		"apiVersion": p('version'),
+		"correlationId": correlationId,
+    }, 
+    "error": {
+		"description": error.description,
+		"status": error.errorType.identifier,
+		"invocationTimestamp": now()
+	}
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[405]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+				<ee:transform doc:name="Common Error Response" doc:id="474236dc-62c8-486a-b008-6e3a3a991e38" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"header":{
+		"apiName": p('app.name'),
+		"apiVersion": p('version'),
+		"correlationId": correlationId,
+    }, 
+    "error": {
+		"description": error.description,
+		"status": error.errorType.identifier,
+		"invocationTimestamp": now()
+	}
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[406]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+				<ee:transform doc:name="Common Error Response" doc:id="06c7acd6-8b06-4a2a-b8f5-f4335fded8c6" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"header":{
+		"apiName": p('app.name'),
+		"apiVersion": p('version'),
+		"correlationId": correlationId,
+    }, 
+    "error": {
+		"description": error.description,
+		"status": error.errorType.identifier,
+		"invocationTimestamp": now()
+	}
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[415]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+				<ee:transform doc:name="Common Error Response" doc:id="c1eadbe6-4045-4301-b3cc-950ba915db39" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"header":{
+		"apiName": p('app.name'),
+		"apiVersion": p('version'),
+		"correlationId": correlationId,
+    }, 
+    "error": {
+		"description": error.description,
+		"status": error.errorType.identifier,
+		"invocationTimestamp": now()
+	}
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[501]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="fakestore-client-eapi-console">
+        <http:listener config-ref="fakestore-client-eapi-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="fakestore-client-eapi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\products\(id):application\json:fakestore-client-eapi-config">
+		<flow-ref doc:name="updateProduct" doc:id="f0a5b9fa-0dc1-4cef-9050-afb70b25fd44" name="updateProduct-implFlow"/>
+    </flow>
+    <flow name="get:\products:fakestore-client-eapi-config">
+		<flow-ref doc:name="getAllProducts-FR" doc:id="d6a774df-d400-498b-9201-7a3ee3fd4676" name="getAllProducts-implFlow"/>
+    </flow>
+    <flow name="get:\products\top10:application\json:fakestore-client-eapi-config">
+		<flow-ref doc:name="getTop10Products" doc:id="b759da29-1495-408e-93a1-1bac9e8ac6d3" name="getTop10Products-implFlow"/>
+    </flow>
+    <flow name="get:\products\(id):fakestore-client-eapi-config">
+		<flow-ref doc:name="getProductByID" doc:id="e905e6b0-b125-4dd3-93d6-60176c535f05" name="getProductByID-implFlow"/>
+    </flow>
+    <flow name="post:\products:application\json:fakestore-client-eapi-config">
+		<flow-ref doc:name="createNewProduct" doc:id="eedb0b2f-da51-412b-9c50-01feab8c634d" name="createNewProduct-implFlow"/>
+    </flow>
+</mule>
