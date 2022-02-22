@@ -11,7 +11,7 @@ http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule
 		<logger level="INFO" doc:name="Start get all products" doc:id="7792ae60-1429-496d-b14a-cc282fb971d6" message="Start get all products"/>
 		<set-variable value='#[message.attributes.queryParams.sort as String default "asc"]' doc:name="Set sort parameter" doc:id="96442520-caa5-436b-94e7-e7358bce8204" variableName="sort" />
 		<set-variable value="#[message.attributes.queryParams.limit as String default 20]" doc:name="Set Limit parameter" doc:id="6ef6e673-a624-4954-a052-a5da11a9073a" variableName="limit" />
-		<http:request method="GET" doc:name="Fakestore Product Proxy API" doc:id="be03d37c-bafb-4229-8a69-6d7e17dcad32" path="/products" responseTimeout="${http.timeout}" config-ref="fakestore-product-api-config">
+		<http:request method="GET" doc:name="Fakestore Product Proxy API" doc:id="be03d37c-bafb-4229-8a69-6d7e17dcad32" path="${prcpath}/products" responseTimeout="${http.timeout}" config-ref="fakestore-product-api-config">
 			<http:query-params><![CDATA[#[output application/java
 ---
 {
@@ -46,7 +46,7 @@ payload map ( payload01 , indexOfPayload01 ) -> {
 	<flow name="getProductByID-implFlow" doc:id="f2a81936-b4a7-4028-904e-f1f0a17d28a2" >
 		<logger level="INFO" doc:name="Start get product by ID" doc:id="8bfb3111-99ec-442e-9fef-24bf9f0444df" message="Start get product by ID"/>
 		<flow-ref doc:name="setProductID" doc:id="4d8198b1-474c-4aef-814c-5745258e5f51" name="setProductID"/>
-		<http:request method="GET" doc:name="Fakestore Product Proxy API" doc:id="d459ddd4-b218-4f0c-a8ac-e499502bb048" path="/products/{id}" responseTimeout="${http.timeout}" config-ref="fakestore-product-api-config">
+		<http:request method="GET" doc:name="Fakestore Product Proxy API" doc:id="d459ddd4-b218-4f0c-a8ac-e499502bb048" path="${prcpath}/products/{id}" responseTimeout="${http.timeout}" config-ref="fakestore-product-api-config">
 			<http:uri-params ><![CDATA[#[output application/java
 ---
 {
@@ -80,37 +80,27 @@ output application/json
 	</flow>
 	<flow name="getTop10Products-implFlow" doc:id="21597e24-45d2-4251-9f0b-98ef47c1a6b8" >
 		<logger level="INFO" doc:name="Start get top 10 products" doc:id="f65bae46-0dec-42d9-a3e1-33b1b4a68a46" message="Start get top 10 products"/>
-		<http:request method="GET" doc:name="Fakestore Product Proxy API" doc:id="cea42a6a-7c10-43e2-83dd-bad8b15979af" path="/products" config-ref="fakestore-product-api-config" responseTimeout="${http.timeout}">
+		<http:request method="GET" doc:name="Fakestore Product Proxy API" doc:id="cea42a6a-7c10-43e2-83dd-bad8b15979af" path="${prcpath}/products/top10" config-ref="fakestore-product-api-config" responseTimeout="${http.timeout}">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/json"
+}]]]></http:headers>
 		</http:request>
 		<ee:transform doc:name="Top 10 products" doc:id="d9b2159a-b7c1-447d-9f2d-60d2adb12f3b" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
-import take from dw::core::Arrays
 output application/json
-fun top10(payload) =
-  take(payload,10)
 ---
-top10(((payload map ( payload01 , indexOfPayload01 ) -> {
-	id: payload01.id,
-	title: payload01.title,
-	price: payload01.price,
-	category: payload01.category,
-	description: payload01.description,
-	image: payload01.image,
-	rating: {
-		rate: payload01.rating.rate,
-		count: payload01.rating.count
-	}
-}) orderBy -$.rating.rate))
-
+payload
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="End of get top 10 products" doc:id="16885bf7-4b98-4660-9663-bd9d1dba70c4" message="End of get top 10 products"/>
+		<logger level="INFO" doc:name="End of get top 10 products" doc:id="16885bf7-4b98-4660-9663-bd9d1dba70c4" message='End of get top 10 products'/>
 	</flow>
 	<flow name="createNewProduct-implFlow" doc:id="39dd87a5-f600-4e90-ad0a-f23d7efd8c22" >
 		<logger level="INFO" doc:name="Start create new product" doc:id="640bb94c-6eff-4af7-a879-e60971c443c8" message="Start create new product"/>
-		<http:request method="POST" doc:name="Fakestore Product Proxy API" doc:id="20cfa290-1eff-4068-9fa2-16b07acfc5d6" path="/products" responseTimeout="${http.timeout}" config-ref="fakestore-product-api-config"/>
+		<http:request method="POST" doc:name="Fakestore Product Proxy API" doc:id="20cfa290-1eff-4068-9fa2-16b07acfc5d6" path="${prcpath}/products" responseTimeout="${http.timeout}" config-ref="fakestore-product-api-config"/>
 		<ee:transform doc:name="new product" doc:id="86c36e43-ddd9-4c6a-ba4a-c2cdc2bd1943" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -119,12 +109,12 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="End of create new product" doc:id="962e5c57-6ae1-45ab-9b10-d1349d442ff5" />
+		<logger level="INFO" doc:name="End of create new product" doc:id="962e5c57-6ae1-45ab-9b10-d1349d442ff5" message="End of create new product"/>
 	</flow>
 	<flow name="updateProduct-implFlow" doc:id="fe15b5a6-6461-4305-9dd7-e6f12601da89" >
 		<logger level="INFO" doc:name="Start update product" doc:id="27a65076-51f5-41c0-a7eb-df7eceb3731a" />
 		<flow-ref doc:name="set product ID" doc:id="16582fe2-cf13-449f-8df5-3445979df574" name="setProductID"/>
-		<http:request method="PUT" doc:name="Fakestore Product Proxy API" doc:id="8ff6c019-b2dd-4a50-9521-8b37f1469a20" path="/products/{id}" responseTimeout="${http.timeout}" config-ref="fakestore-product-api-config">
+		<http:request method="PUT" doc:name="Fakestore Product Proxy API" doc:id="8ff6c019-b2dd-4a50-9521-8b37f1469a20" path="${prcpath}/products/{id}" responseTimeout="${http.timeout}" config-ref="fakestore-product-api-config">
 			<http:uri-params ><![CDATA[#[output application/java
 ---
 {

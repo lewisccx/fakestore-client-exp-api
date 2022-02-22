@@ -68,7 +68,7 @@
 		<dependency>
 			<groupId>706f4d0a-e4a3-40fb-8365-ae5ac1f0a8d7</groupId>
 			<artifactId>fakestore-client-exp-api</artifactId>
-			<version>1.0.7</version>
+			<version>1.0.8</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>
